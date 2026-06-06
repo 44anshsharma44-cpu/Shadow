@@ -29,8 +29,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Install prisma CLI so we can run migrations on container start
-RUN npm install -g prisma
+# Install prisma CLI (pinned to project version) so we can run migrations on container start
+RUN npm install -g prisma@5.22.0
 
 COPY --from=builder /app/public ./public
 
