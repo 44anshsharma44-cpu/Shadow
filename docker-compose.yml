@@ -10,12 +10,16 @@ services:
       - '3000:3000'
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=file:/app/dev.db
-      - NEXTAUTH_URL=http://localhost:3000
-      - NEXTAUTH_SECRET=localdevelopmentsecretfornextauth32charslong
-      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      # Mount point must match DATABASE_URL below
+      - DATABASE_URL=file:/app/prisma/prod.db
+      # CHANGE THESE for production!
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-changeme_run_openssl_rand_base64_32}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
       - NEXT_PUBLIC_MEDIAPIPE_MODEL_URL=https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
     volumes:
+      # Persist SQLite database across container restarts/redeploys
       - db-data:/app/prisma
     restart: always
 
