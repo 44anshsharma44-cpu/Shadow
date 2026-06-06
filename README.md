@@ -1,36 +1,116 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Shadow Boxing AI
 
-## Getting Started
+Shadow Boxing AI is a complete, production-ready web application inspired by Shadow Cricket, where a user's real-world shadow-boxing movements are tracked through their webcam and translated into actions inside an interactive boxing game.
 
-First, run the development server:
+Utilizing Next.js 15, MediaPipe Pose Landmarker, Tailwind CSS, Zustand, and Prisma, the system detects boxing movements (Jabs, Hooks, Uppercuts, Ducks, and Blocks) in real-time, matching them to actions performed by a virtual boxer against a FSM-based AI opponent.
+
+---
+
+## ⚡ Tech Stack
+
+- **Frontend**: Next.js 15 (App Router), React, TypeScript, Tailwind CSS, Framer Motion, Zustand
+- **AI Tracking**: MediaPipe Tasks Vision, BlazePose Full Body Tracking
+- **Graphics Rendering**: HTML5 Canvas (60 FPS requestAnimationFrame loop)
+- **Database / Backing**: SQLite (for zero-config local development), Prisma ORM
+- **Authentication**: NextAuth (Credentials provider + Guest Quickplay Mode)
+- **Sound Design**: Synthesized sound effects via Web Audio API (Zero external MP3 dependencies)
+
+---
+
+## 🛠️ Environment Variables
+
+Copy the `.env.example` file to `.env`:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Configuration Details
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Description | Recommended Local Default |
+| :--- | :--- | :--- |
+| `DATABASE_URL` | Prisma SQLite database connection string. | `"file:./dev.db"` |
+| `NEXTAUTH_URL` | Canonical app URL for NextAuth callbacks. | `http://localhost:3000` |
+| `NEXTAUTH_SECRET` | NextAuth cryptographic signing token. | `localdevelopmentsecretfornextauth32charslong` |
+| `NEXT_PUBLIC_APP_URL` | Frontend canonical URL. | `http://localhost:3000` |
+| `NEXT_PUBLIC_MEDIAPIPE_MODEL_URL` | MediaPipe model asset CDN path. | Google Storage CDN (preloaded) |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🚀 Setup & Local Development
 
-To learn more about Next.js, take a look at the following resources:
+To run the project locally on your machine, follow these steps:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 1. Install Dependencies
+```bash
+npm install
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 2. Configure Database & Client
+Run the Prisma migrations to create the local SQLite database file `prisma/dev.db` and generate the type-safe Prisma client:
+```bash
+npx prisma migrate dev --name init
+```
 
-## Deploy on Vercel
+### 3. Launch Development Server
+```bash
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Open [http://localhost:3000](http://localhost:3000) in your web browser.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 🧪 Running Automated Tests
+
+We use Vitest to run unit tests for the classifier and combat systems:
+
+```bash
+npm run test
+```
+
+---
+
+## 🐳 Docker Deployment
+
+To run the application inside a containerized production environment:
+
+### 1. Build and Launch Container
+```bash
+docker-compose up -d --build
+```
+This builds a multi-stage optimized Alpine container (~180MB) and mounts a volume for database persistence.
+
+### 2. Stop Containers
+```bash
+docker-compose down
+```
+
+---
+
+## ☁️ Vercel Deployment
+
+Since the app uses Next.js, it is 100% deployable to Vercel:
+
+1. **Prisma SQLite Warning**: SQLite is file-based and ephemeral on Vercel. For production, switch the provider in `prisma/schema.prisma` to `postgresql` or `mysql` and update `DATABASE_URL` to target an online host (like Supabase, Neon, or Aiven).
+2. **Setup**:
+   - Push your code to a GitHub repository.
+   - Import the project into Vercel.
+   - Configure Environment Variables (`NEXTAUTH_SECRET`, `NEXTAUTH_URL`, `DATABASE_URL`, `NEXT_PUBLIC_APP_URL`).
+3. **Build Command**: Set the Vercel build command to:
+   ```bash
+   npx prisma generate && next build
+   ```
+
+---
+
+## 🩺 Troubleshooting
+
+### 1. Webcam permission denied
+Ensure your browser page has permissions to access the webcam. Look for the camera icon in your address bar to toggle access.
+
+### 2. Gesture classification feels slow or unresponsive
+Go to the **Settings** page and slide the **Pose Sensitivity** slider up. High sensitivity lowers the velocity thresholds, making swift or lighter movements easier to register.
+
+### 3. Canvas rendering lags
+Ensure hardware acceleration is enabled in your browser. The MediaPipe Pose tracker uses WebGL GPU delegation for fast frame analysis.

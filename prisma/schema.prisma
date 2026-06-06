@@ -1,0 +1,54 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String        @id @default(uuid())
+  name         String?
+  email        String        @unique
+  password     String
+  createdAt    DateTime      @default(now())
+  
+  settings     Settings?
+  highScores   HighScore[]
+  sessions     GameSession[]
+}
+
+model HighScore {
+  id        String   @id @default(uuid())
+  score     Int
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([score])
+}
+
+model GameSession {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  duration   Float    // duration in seconds
+  accuracy   Float    // percentage accuracy (0 to 100)
+  comboCount Int      // max combo achieved
+  score      Int
+  result     String   // WIN, LOSS, DRAW
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Settings {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  difficulty   String   @default("MEDIUM") // EASY, MEDIUM, HARD
+  volume       Float    @default(0.5)      // volume range [0, 1]
+  sensitivity  Float    @default(0.5)      // gesture threshold sensitivity [0, 1]
+  cameraId     String   @default("")       // preferred camera ID
+}
